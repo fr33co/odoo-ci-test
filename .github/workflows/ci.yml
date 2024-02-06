@@ -15,7 +15,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [linux/amd64]
         include:
           - ubuntu_version: "20.04"
             odoo_version: "11.0"
@@ -63,7 +62,7 @@ jobs:
           context: .
           push: true
           tags: fr33co/odootests:${{ matrix.odoo_version }}
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64
           build-args: |
             ubuntu_version=${{ matrix.ubuntu_version }}
             odoo_version=${{ matrix.odoo_version }}
