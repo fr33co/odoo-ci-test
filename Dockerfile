@@ -69,7 +69,6 @@ RUN apt-get update -qq \
        build-essential \
        python${python_version}-dev \
        python${python_version}-venv \
-       python3-dev \
        python3 \
        python3-venv \
        libpq-dev \
@@ -84,7 +83,6 @@ RUN apt-get update -qq \
        default-libmysqlclient-dev \
        swig \
        libffi-dev \
-       pip \
        pkg-config
 
 # We use manifestoo to check licenses, development status and list addons and dependencies
