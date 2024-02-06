@@ -29,6 +29,8 @@ RUN set -x; \
             software-properties-common \
             pipx
 
+ENV PIPX_BIN_DIR=/usr/local/bin
+
 # Install wkhtml
 RUN case $(lsb_release -c -s) in \
       focal) WKHTML_DEB_URL=https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.focal_amd64.deb ;; \
@@ -100,6 +102,10 @@ RUN python${python_version} -m venv /opt/odoo-venv \
     && /opt/odoo-venv/bin/pip install -U "setuptools$setuptools_constraint" "wheel" "pip" \
     && /opt/odoo-venv/bin/pip list
 ENV PATH=/opt/odoo-venv/bin:$PATH
+
+# Install other test requirements.
+# - coverage
+RUN pip install --no-cache-dir coverage
 
 # Install Odoo (use ADD for correct layer caching)
 ARG odoo_org_repo=odoo/odoo
