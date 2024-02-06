@@ -118,6 +118,8 @@ RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg
 ENV OPENERP_SERVER=/etc/odoo.cfg
 
+COPY bin/* /usr/local/bin/
+
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PIP_NO_PYTHON_VERSION_WARNING=1
 ENV ODOO_VERSION=$odoo_version
