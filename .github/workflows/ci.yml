@@ -68,5 +68,5 @@ jobs:
             odoo_version=${{ matrix.odoo_version }}
             python_version=${{ matrix.python_version }}
             timezone=America/Bogota
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=inline
