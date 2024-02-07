@@ -27,7 +27,10 @@ RUN set -x; \
             gnupg \
             lsb-release \
             software-properties-common \
+            openssh-client \
             pipx
+
+ENV PIPX_BIN_DIR=/usr/local/bin
 
 # Install wkhtml
 RUN case $(lsb_release -c -s) in \
@@ -69,7 +72,6 @@ RUN apt-get update -qq \
        build-essential \
        python${python_version}-dev \
        python${python_version}-venv \
-       python3-dev \
        python3 \
        python3-venv \
        libpq-dev \
@@ -84,7 +86,6 @@ RUN apt-get update -qq \
        default-libmysqlclient-dev \
        swig \
        libffi-dev \
-       pip \
        pkg-config
 
 # We use manifestoo to check licenses, development status and list addons and dependencies
@@ -103,6 +104,10 @@ RUN python${python_version} -m venv /opt/odoo-venv \
     && /opt/odoo-venv/bin/pip list
 ENV PATH=/opt/odoo-venv/bin:$PATH
 
+# Install other test requirements.
+# - coverage
+RUN pip install --no-cache-dir coverage
+
 # Install Odoo (use ADD for correct layer caching)
 ARG odoo_org_repo=odoo/odoo
 ARG odoo_version
@@ -117,6 +122,8 @@ RUN pip install --no-cache-dir -e /opt/odoo && pip list
 RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg
 ENV OPENERP_SERVER=/etc/odoo.cfg
+
+COPY bin/* /usr/local/bin/
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 ENV PIP_NO_PYTHON_VERSION_WARNING=1
