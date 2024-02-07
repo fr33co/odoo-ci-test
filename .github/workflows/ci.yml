@@ -68,7 +68,5 @@ jobs:
             odoo_version=${{ matrix.odoo_version }}
             python_version=${{ matrix.python_version }}
             timezone=America/Bogota
-            ssh_private_key=${{ secrets.SSH_PRIVATE_KEY }}
-            ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=inline
