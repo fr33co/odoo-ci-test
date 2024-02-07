@@ -27,6 +27,7 @@ RUN set -x; \
             gnupg \
             lsb-release \
             software-properties-common \
+            openssh-client \
             pipx
 
 ENV PIPX_BIN_DIR=/usr/local/bin
