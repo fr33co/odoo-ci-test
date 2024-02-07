@@ -70,3 +70,5 @@ jobs:
             timezone=America/Bogota
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=inline
+          ssh: |
+            default=${{ env.SSH_AUTH_SOCK }}
