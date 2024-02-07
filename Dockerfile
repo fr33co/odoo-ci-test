@@ -32,6 +32,13 @@ RUN set -x; \
 
 ENV PIPX_BIN_DIR=/usr/local/bin
 
+# Create SSH_PRIVATE_KEY and SSH_PUBLIC_KEY in your secrets of github repo
+ARG SSH_PRIVATE_KEY
+ARG SSH_PUBLIC_KEY
+RUN echo {SSH_PRIVATE_KEY} > ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa
+RUN echo {SSH_PUBLIC_KEY} > ~/.ssh/id_rsa.pub && chmod 600 ~/.ssh/id_rsa.pub
+RUN ssh-keyscan github.com >> ~/.ssh/known_hosts
+
 # Install wkhtml
 RUN case $(lsb_release -c -s) in \
       focal) WKHTML_DEB_URL=https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.focal_amd64.deb ;; \
