@@ -68,7 +68,7 @@ jobs:
             odoo_version=${{ matrix.odoo_version }}
             python_version=${{ matrix.python_version }}
             timezone=America/Bogota
+            DOCKER_BUILDKIT=1
+            SSH_AUTH_SOCK=/tmp/ssh-auth-sock
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=inline
-          ssh: |
-            default=${{ env.SSH_AUTH_SOCK }}
