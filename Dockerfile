@@ -133,7 +133,7 @@ ENV PGUSER=odoo
 ENV PGPASSWORD=odoo
 ENV PGDATABASE=odoo
 ENV ADDONS_DIR=.
-ENV ADDONS_PATH=/opt/odoo/addons,/usr/lib/python3/dist-packages/odoo/addons
+ENV ADDONS_PATH=/opt/odoo/addons
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
