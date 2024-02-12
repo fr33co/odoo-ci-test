@@ -116,9 +116,6 @@ RUN mkdir /tmp/getodoo \
 # Install Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt && pip list
 
-# Copy binaries to the container
-COPY bin/* /usr/local/bin/
-
 # Install - coverage
 RUN pip install --no-cache-dir coverage
 
