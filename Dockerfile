@@ -26,7 +26,11 @@ RUN set -x; \
             git \
             gnupg \
             lsb-release \
-            software-properties-common
+            software-properties-common \
+            openssh-client \
+            pipx
+
+ENV PIPX_BIN_DIR=/usr/local/bin
 
 # Install wkhtml
 RUN case $(lsb_release -c -s) in \
@@ -62,7 +66,7 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa
 
 ARG python_version
 
-# Install build dependencies for python libs commonly used by Odoo
+# Install build dependencies for python libs commonly used by Odoo and OCA
 RUN apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
        build-essential \
@@ -84,46 +88,52 @@ RUN apt-get update -qq \
        libffi-dev \
        pkg-config
 
-# Install Odoo
+# We use manifestoo to check licenses, development status and list addons and dependencies
+RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=0.3.1"
+
+# Install pyproject-dependencies helper scripts.
+ARG build_deps="setuptools-odoo wheel whool"
+RUN pipx install --pip-args="--no-cache-dir" pyproject-dependencies
+RUN pipx inject --pip-args="--no-cache-dir" pyproject-dependencies $build_deps
+
+# Make a virtualenv for Odoo so we isolate from system python dependencies and
+# make sure addons we test declare all their python dependencies properly
+ARG setuptools_constraint
+RUN python${python_version} -m venv /opt/odoo-venv \
+    && /opt/odoo-venv/bin/pip install -U "setuptools$setuptools_constraint" "wheel" "pip" \
+    && /opt/odoo-venv/bin/pip list
+ENV PATH=/opt/odoo-venv/bin:$PATH
+
+# Install other test requirements.
+# - coverage
+RUN pip install --no-cache-dir coverage
+
+# Install Odoo (use ADD for correct layer caching)
+ARG odoo_org_repo=odoo/odoo
 ARG odoo_version
-ENV ODOO_VERSION $odoo_version
-ARG ODOO_RELEASE=latest
-RUN set -x; \
-        curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/odoo_${ODOO_VERSION}.${ODOO_RELEASE}_all.deb \
-        && dpkg --force-depends -i odoo.deb \
-        && apt-get update \
-        && apt-get -y install -f --no-install-recommends \
-        && rm -rf /var/lib/apt/lists/* odoo.deb
+ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tmp/odoo-version.json
+RUN mkdir /tmp/getodoo \
+    && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
+    && mv /tmp/getodoo/* /opt/odoo \
+    && rmdir /tmp/getodoo
+RUN pip install --no-cache-dir -e /opt/odoo && pip list
 
-# Copy Odoo configuration file to the container
-COPY ./config/odoo.conf /etc/odoo/
-RUN chown odoo -Rf /etc/odoo/*
+# Make an empty odoo.cfg
+RUN echo "[options]" > /etc/odoo.cfg
+ENV ODOO_RC=/etc/odoo.cfg
+ENV OPENERP_SERVER=/etc/odoo.cfg
 
-# Copy wait-for-psql.py to the container
-COPY wait-for-psql.py /usr/local/bin/wait-for-psql.py
-
-# Copy entrypoint script to the container
-COPY entrypoint.sh /entrypoint.sh
-
-# Copy scripts to the container
 COPY bin/* /usr/local/bin/
 
-# Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
-RUN mkdir -p /mnt/extra-addons \
-        && chown -R odoo /mnt/extra-addons
-VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
-
-ENV ODOO_RC /etc/odoo/odoo.conf
-ENV OPENERP_SERVER=/etc/odoo/odoo.conf
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_PYTHON_VERSION_WARNING=1
 ENV ODOO_VERSION=$odoo_version
 ENV PGHOST=postgres
 ENV PGUSER=odoo
 ENV PGPASSWORD=odoo
 ENV PGDATABASE=odoo
+ENV ADDONS_DIR=.
+ENV ADDONS_PATH=/opt/odoo/addons
 
-# Set default user when running the container
-USER odoo
-
+COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["odoo"]
