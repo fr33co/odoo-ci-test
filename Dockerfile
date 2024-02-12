@@ -16,7 +16,12 @@ USER root
 ENV TZ=$timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/time
 
-# Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
+# Add repository deadsnakes (New and old Python versions for Ubuntu)
+RUN add-apt-repository -y ppa:deadsnakes/ppa
+
+# Install some deps, lessc and less-plugin-clean-css, wkhtmltopdf, 
+# build dependencies for python libs commonly used by Odoo and OCA.
+ARG python_version
 RUN set -x; \
         apt-get update \
         && apt-get install -y --no-install-recommends \
@@ -28,9 +33,31 @@ RUN set -x; \
             lsb-release \
             software-properties-common \
             openssh-client \
-            pipx
+            pipx \
+            build-essential \
+            python${python_version}-dev \
+            python${python_version}-venv \
+            python3 \
+            python3-venv \
+            libpq-dev \
+            libxml2-dev \
+            libxslt1-dev \
+            libz-dev \
+            libxmlsec1-dev \
+            libldap2-dev \
+            libsasl2-dev \
+            libjpeg-dev \
+            libcups2-dev \
+            default-libmysqlclient-dev \
+            swig \
+            libffi-dev \
+            pkg-config
 
-ENV PIPX_BIN_DIR=/usr/local/bin
+# Install postgresql client
+RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -s -c`-pgdg main" > /etc/apt/sources.list.d/pgclient.list \
+    && apt update -qq \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qq postgresql-client-12
 
 # Install wkhtml
 RUN case $(lsb_release -c -s) in \
@@ -56,37 +83,8 @@ RUN case $(lsb_release -c -s) in \
 # less is for odoo<12
 RUN npm install -g rtlcss less@3.0.4 less-plugin-clean-css
 
-# Install postgresql client
-RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -s -c`-pgdg main" > /etc/apt/sources.list.d/pgclient.list \
-    && apt update -qq \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qq postgresql-client-12
-
-RUN add-apt-repository -y ppa:deadsnakes/ppa
-
-ARG python_version
-
-# Install build dependencies for python libs commonly used by Odoo and OCA
-RUN apt-get update -qq \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
-       build-essential \
-       python${python_version}-dev \
-       python${python_version}-venv \
-       python3 \
-       python3-venv \
-       libpq-dev \
-       libxml2-dev \
-       libxslt1-dev \
-       libz-dev \
-       libxmlsec1-dev \
-       libldap2-dev \
-       libsasl2-dev \
-       libjpeg-dev \
-       libcups2-dev \
-       default-libmysqlclient-dev \
-       swig \
-       libffi-dev \
-       pkg-config
+# PIPX_BIN_DIR is where we install pipx binaries
+ENV PIPX_BIN_DIR=/usr/local/bin
 
 # We use manifestoo to check licenses, development status and list addons and dependencies
 RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=0.3.1"
@@ -96,6 +94,9 @@ ARG build_deps="setuptools-odoo wheel whool"
 RUN pipx install --pip-args="--no-cache-dir" pyproject-dependencies
 RUN pipx inject --pip-args="--no-cache-dir" pyproject-dependencies $build_deps
 
+# Install other test requirements - coverage
+RUN pip install --no-cache-dir coverage
+
 # Make a virtualenv for Odoo so we isolate from system python dependencies and
 # make sure addons we test declare all their python dependencies properly
 ARG setuptools_constraint
@@ -103,10 +104,6 @@ RUN python${python_version} -m venv /opt/odoo-venv \
     && /opt/odoo-venv/bin/pip install -U "setuptools$setuptools_constraint" "wheel" "pip" \
     && /opt/odoo-venv/bin/pip list
 ENV PATH=/opt/odoo-venv/bin:$PATH
-
-# Install other test requirements.
-# - coverage
-RUN pip install --no-cache-dir coverage
 
 # Install Odoo (use ADD for correct layer caching)
 ARG odoo_org_repo=odoo/odoo
