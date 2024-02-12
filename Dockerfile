@@ -118,6 +118,9 @@ RUN mkdir /tmp/getodoo \
     && rmdir /tmp/getodoo
 RUN pip install --no-cache-dir -e /opt/odoo && pip list
 
+# Copy binaries to the container
+COPY bin/* /usr/local/bin/
+
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg
