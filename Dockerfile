@@ -84,16 +84,6 @@ RUN apt-get update -qq \
        libffi-dev \
        pkg-config
 
-# Install Odoo (use ADD for correct layer caching)
-ARG odoo_org_repo=odoo/odoo
-ARG odoo_version
-ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tmp/odoo-version.json
-RUN mkdir /tmp/getodoo \
-    && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
-    && mv /tmp/getodoo/* /opt/odoo \
-    && rmdir /tmp/getodoo
-RUN pip install --no-cache-dir -e /opt/odoo && pip list
-
 # Install Odoo
 ARG odoo_version
 ENV ODOO_VERSION $odoo_version
@@ -117,8 +107,6 @@ COPY entrypoint.sh /entrypoint.sh
 
 ENV ODOO_RC /etc/odoo/odoo.conf
 ENV OPENERP_SERVER=/etc/odoo/odoo.conf
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-ENV PIP_NO_PYTHON_VERSION_WARNING=1
 ENV ODOO_VERSION=$odoo_version
 ENV PGHOST=postgres
 ENV PGUSER=odoo
