@@ -49,8 +49,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Create cache directory
-        run: mkdir -p /tmp/.buildx-cache
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
@@ -71,5 +69,7 @@ jobs:
             python_version=${{ matrix.python_version }}
             timezone=America/Bogota
             DOCKER_BUILDKIT=1
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
         env:
           SSH_AUTH_SOCK: /run/host-services/ssh-auth.sock
