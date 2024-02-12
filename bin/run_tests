@@ -6,14 +6,15 @@
 
 set -ex
 
-oca_wait_for_postgres
+wait_for_postgres
 
-ADDONS=$(oca_list_addons_to_test)
+ADDONS=$(list_addons_to_test)
 if [ -z "$ADDONS" ]; then
     exit 0
 fi
 
-unbuffer coverage run ./odoo-bin --include "${ADDONS_DIR}/*" --branch \
+unbuffer coverage run /opt/odoo/odoo-bin --addons-path="${ADDONS_PATH}/*" 
+    --branch \
     $(which odoo) \
     -d ${PGDATABASE} \
     -i ${ADDONS} \
