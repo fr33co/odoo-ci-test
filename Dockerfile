@@ -62,7 +62,7 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa
 
 ARG python_version
 
-# Install build dependencies for python libs commonly used by Odoo and OCA
+# Install build dependencies for python libs commonly used by Odoo
 RUN apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
        build-essential \
