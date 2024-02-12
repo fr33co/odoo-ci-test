@@ -105,6 +105,9 @@ COPY wait-for-psql.py /usr/local/bin/wait-for-psql.py
 # Copy entrypoint script to the container
 COPY entrypoint.sh /entrypoint.sh
 
+# Copy scripts to the container
+COPY bin/* /usr/local/bin/
+
 ENV ODOO_RC /etc/odoo/odoo.conf
 ENV OPENERP_SERVER=/etc/odoo/odoo.conf
 ENV ODOO_VERSION=$odoo_version
@@ -112,8 +115,6 @@ ENV PGHOST=postgres
 ENV PGUSER=odoo
 ENV PGPASSWORD=odoo
 ENV PGDATABASE=odoo
-ENV ADDONS_DIR=.
-ENV ADDONS_PATH=/opt/odoo/addons
 
 # Set default user when running the container
 USER odoo
