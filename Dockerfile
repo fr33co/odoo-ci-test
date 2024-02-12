@@ -108,6 +108,11 @@ COPY entrypoint.sh /entrypoint.sh
 # Copy scripts to the container
 COPY bin/* /usr/local/bin/
 
+# Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
+RUN mkdir -p /mnt/extra-addons \
+        && chown -R odoo /mnt/extra-addons
+VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
+
 ENV ODOO_RC /etc/odoo/odoo.conf
 ENV OPENERP_SERVER=/etc/odoo/odoo.conf
 ENV ODOO_VERSION=$odoo_version
