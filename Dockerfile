@@ -104,10 +104,6 @@ RUN python${python_version} -m venv /opt/odoo-venv \
     && /opt/odoo-venv/bin/pip list
 ENV PATH=/opt/odoo-venv/bin:$PATH
 
-# Install other test requirements.
-# - coverage
-RUN pip install --no-cache-dir coverage
-
 # Install Odoo (use ADD for correct layer caching)
 ARG odoo_org_repo=odoo/odoo
 ARG odoo_version
@@ -116,10 +112,18 @@ RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
     && mv /tmp/getodoo/* /opt/odoo \
     && rmdir /tmp/getodoo
-RUN pip install --no-cache-dir -e /opt/odoo && pip list
+
+# Install Python dependencies from requirements.txt
+RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt && pip list
 
 # Copy binaries to the container
 COPY bin/* /usr/local/bin/
+
+# Install - coverage
+RUN pip install --no-cache-dir coverage
+
+# Install - flake8
+RUN pip install --no-cache-dir flake8
 
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
