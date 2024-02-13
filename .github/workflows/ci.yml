@@ -24,7 +24,7 @@ jobs:
             python_version: "3.5"
           - ubuntu_version: "20.04"
             odoo_version: "13.0"
-            python_version: "3.6"
+            python_version: "3.5"
           - ubuntu_version: "20.04"
             odoo_version: "14.0"
             python_version: "3.8"
