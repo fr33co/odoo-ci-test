@@ -122,6 +122,9 @@ RUN pip install --no-cache-dir coverage
 # Install - flake8
 RUN pip install --no-cache-dir flake8
 
+# Copy script to the container
+COPY bin/* /usr/local/bin/
+
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg

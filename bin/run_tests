@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#
+# Run tests. Use unbuffer to get a colored output.
+#
+
+set -ex
+
+wait_for_postgres
+
+ADDONS=$(list_addons_to_test)
+if [ -z "$ADDONS" ]; then
+    exit 0
+fi
+
+unbuffer coverage run /opt/odoo/odoo-bin \
+    $(which odoo) \
+    -d ${PGDATABASE} \
+    -i ${ADDONS} \
+    --test-enable \
+    --stop-after-init \
+
+coverage report -m
