@@ -25,10 +25,10 @@ unbuffer coverage run --source="${ADDONS_DIR}" --branch \
     --log-level=test
 
 echo "Generating coverage report..."
-coverage report --include="${ADDONS}" --skip-covered --fail-under=60
+coverage report
 
 echo "Calculating coverage..."
-coverage_percentage=$(coverage report | grep TOTAL | awk '{print $4}')
+coverage_percentage=$(coverage report | grep TOTAL | awk '{print $5}')
 
 # Check if coverage is greater than 60%
 required_coverage=60.0
