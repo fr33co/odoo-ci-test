@@ -6,18 +6,37 @@
 
 set -ex
 
+# Wait for postgres
 wait_for_postgres
 
+# List addons to test
 ADDONS=$(list_addons_to_test)
 if [ -z "$ADDONS" ]; then
     exit 0
 fi
 
-unbuffer coverage run /opt/odoo/odoo-bin \
-    $(which odoo) \
+echo "Running tests with coverage..."
+unbuffer coverage run --source="${ADDONS_DIR}" --branch \
+    $(find /opt -name odoo-bin) \
     -d ${PGDATABASE} \
     -i ${ADDONS} \
     --test-enable \
     --stop-after-init \
+    --log-level=test
 
-coverage report -m
+echo "Generating coverage report..."
+coverage report --include="${ADDONS}" --skip-covered --fail-under=60
+
+echo "Calculating coverage..."
+coverage_percentage=$(coverage report | grep TOTAL | awk '{print $4}')
+
+# Check if coverage is greater than 60%
+required_coverage=60.0
+
+if (( $(echo "$coverage_percentage >= $required_coverage" | bc -l) )); then
+    echo "Coverage (${coverage_percentage}%) is greater than or equal to ${required_coverage}% required."
+    exit 0
+else
+    echo "Coverage (${coverage_percentage}%) is less than ${required_coverage}% required."
+    exit 1
+fi

@@ -28,6 +28,7 @@ RUN set -x; \
             lsb-release \
             software-properties-common \
             expect-dev \
+            bc \
             pipx
 
 ENV PIPX_BIN_DIR=/usr/local/bin
@@ -61,6 +62,11 @@ RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -s -c`-pgdg main" > /etc/apt/sources.list.d/pgclient.list \
     && apt update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq postgresql-client-12
+
+# Install Google Chrome for browser tests
+RUN curl -sSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb \
+    && apt-get -y install --no-install-recommends /tmp/chrome.deb \
+    && rm /tmp/chrome.deb
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa
 
