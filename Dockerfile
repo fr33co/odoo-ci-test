@@ -132,8 +132,7 @@ RUN pip install --no-cache-dir flake8
 COPY bin/* /usr/local/bin/
 
 # Create /mnt/extra-addons for users extra addons
-RUN mkdir -p /mnt/extra-addons \
-        && chown -R odoo /mnt/extra-addons
+RUN mkdir -p /mnt/extra-addons
 
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
