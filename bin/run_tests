@@ -15,10 +15,6 @@ if [ -z "$ADDONS" ]; then
     exit 0
 fi
 
-# Add ADDONS_DIR to addons_path.
-echo "addons_path=${ADDONS_PATH},${ADDONS_DIR}" >> ${ODOO_RC}
-cat ${ODOO_RC}
-
 echo "Running tests with coverage..."
 unbuffer coverage run --source="${ADDONS_DIR}" --branch \
     $(find /opt -name odoo-bin) \
