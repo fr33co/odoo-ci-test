@@ -16,6 +16,7 @@ for dir in "$@"; do
         result+=",$dir_result"
     else
         echo "Directory with name $dir not found."
+        exit 1
     fi
 done
 
