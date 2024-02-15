@@ -17,5 +17,6 @@ else
 fi
 
 # Add ADDONS_DIR to addons_path.
-echo "addons_path=${ADDONS_PATH},${ADDONS_DIR}",result >> ${ODOO_RC}
+echo "addons_path=${ADDONS_PATH},${ADDONS_DIR}" >> ${ODOO_RC}
+echo -n ",$result" >> ${ODOO_RC}
 cat ${ODOO_RC}
