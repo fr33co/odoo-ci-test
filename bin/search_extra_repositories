@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 # Check if an argument is provided
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <directory_name>"
@@ -11,11 +13,13 @@ result=$(find / -type d -name "$1" -print -quit 2>/dev/null)
 
 # Check if the result is empty
 if [ -z "$result" ]; then
-    echo "Directory $1 not found."
+    echo "Directory with name $1 not found."
 else
-    echo "$result"
+    echo "The directory $result exists."
 fi
 
 # Add ADDONS_DIR to addons_path.
 echo "addons_path=${ADDONS_PATH},${ADDONS_DIR},$result" >> ${ODOO_RC}
 cat ${ODOO_RC}
+
+exit 0
