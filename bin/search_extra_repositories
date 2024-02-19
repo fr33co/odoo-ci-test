@@ -1,27 +1,35 @@
 #!/bin/bash
 
-set -ex
-
-# Check if an argument is provided
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <directory_name> [more_directory_names...]"
+# Verificar que se proporcionó un argumento
+if [ $# -lt 1 ]; then
+    echo "Uso: $0 <nombre_directorio>"
     exit 1
 fi
 
-# Execute the find command with the provided arguments
-result=""
-for dir in "$@"; do
-    dir_result=$(find / -type d -name "$dir" -print -quit 2>/dev/null)
-    if [ -n "$dir_result" ]; then
-        result+=",$dir_result"
+# Asignar el argumento a una variable
+new_directory="$1"
+
+# Buscar el directorio
+directory_found=$(find / -type d -name "$new_directory" 2>/dev/null)
+
+# Verificar si se encontró el directorio
+if [ -n "$directory_found" ]; then
+    # Verificar si el archivo ya existe y contiene addons_path
+    if [ -f "${ODOO_RC}" ]; then
+        addons_line=$(grep -E "^addons_path=${ADDONS_PATH},${ADDONS_DIR}" "${ODOO_RC}")
+        if [ -n "$addons_line" ]; then
+            # Agregar el nuevo directorio a la línea existente
+            sed -i "s|^addons_path=${ADDONS_PATH},${ADDONS_DIR}\(.*\)|addons_path=${ADDONS_PATH},${ADDONS_DIR}\1,$directory_found|g" "${ODOO_RC}"
+        else
+            # Si no existe la línea, agregarla con el nuevo directorio
+            echo "addons_path=${ADDONS_PATH},${ADDONS_DIR},$directory_found" >> "${ODOO_RC}"
+            cat "${ODOO_RC}"
+        fi
     else
-        echo "Directory with name $dir not found."
-        exit 1
+        # Si el archivo no existe, crearlo con la línea y el nuevo directorio
+        echo "addons_path=${ADDONS_PATH},${ADDONS_DIR},$directory_found" > "${ODOO_RC}"
+        cat "${ODOO_RC}"
     fi
-done
-
-# Add ADDONS_DIR to addons_path.
-echo "addons_path=${ADDONS_PATH},${ADDONS_DIR},$result" >> ${ODOO_RC}
-cat ${ODOO_RC}
-
-exit 0
+else
+    echo "El directorio $new_directory no fue encontrado."
+fi
