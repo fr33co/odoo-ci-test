@@ -19,6 +19,7 @@ fi
 # Ex./run_tests.sh --tags=mytag1,mytag2
 # Check if test tags are provided
 if [ $# -eq 0 ]; then
+    echo "No test tags provided."
     echo "Running tests with coverage..."
     unbuffer coverage run --source="${ADDONS_DIR}" --branch \
         $(find /opt -name odoo-bin) \
@@ -28,6 +29,7 @@ if [ $# -eq 0 ]; then
         --stop-after-init \
         --log-level=test
 else
+    echo "Test tags provided."
     echo "Running tests with coverage..."
     unbuffer coverage run --source="${ADDONS_DIR}" --branch \
         $(find /opt -name odoo-bin) \
