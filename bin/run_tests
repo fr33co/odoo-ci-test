@@ -15,7 +15,7 @@ if [ -z "$ADDONS" ]; then
     exit 0
 fi
 
-# Use --tags=mytag1,mytag2 to run tests with specific tags. 
+# Use test-tags=mytag1,mytag2 to run tests with specific tags. 
 # Ex./run_tests.sh --tags=mytag1,mytag2
 # Check if test tags are provided
 if [ $# -eq 0 ]; then
