@@ -38,7 +38,7 @@ else
         --test-enable \
         --stop-after-init \
         --log-level=test \
-        --test-tags="$@"
+        --"$@"
 fi
 
 echo "Generating coverage report..."
