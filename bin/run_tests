@@ -15,14 +15,29 @@ if [ -z "$ADDONS" ]; then
     exit 0
 fi
 
-echo "Running tests with coverage..."
-unbuffer coverage run --source="${ADDONS_DIR}" --branch \
-    $(find /opt -name odoo-bin) \
-    -d ${PGDATABASE} \
-    -i ${ADDONS} \
-    --test-enable \
-    --stop-after-init \
-    --log-level=test
+# Use --tags=mytag1,mytag2 to run tests with specific tags. 
+# Ex./run_tests.sh --tags=mytag1,mytag2
+# Check if test tags are provided
+if [ $# -eq 0 ]; then
+    echo "Running tests with coverage..."
+    unbuffer coverage run --source="${ADDONS_DIR}" --branch \
+        $(find /opt -name odoo-bin) \
+        -d ${PGDATABASE} \
+        -i ${ADDONS} \
+        --test-enable \
+        --stop-after-init \
+        --log-level=test
+else
+    echo "Running tests with coverage..."
+    unbuffer coverage run --source="${ADDONS_DIR}" --branch \
+        $(find /opt -name odoo-bin) \
+        -d ${PGDATABASE} \
+        -i ${ADDONS} \
+        --test-enable \
+        --stop-after-init \
+        --log-level=test \
+        --test-tags="$@"
+fi
 
 echo "Generating coverage report..."
 coverage report
