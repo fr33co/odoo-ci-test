@@ -45,7 +45,7 @@ echo "Generating coverage report..."
 coverage report
 
 echo "Calculating coverage..."
-coverage_percentage=$(coverage report | grep TOTAL | awk '{print $5}')
+coverage_percentage=$(coverage report | grep TOTAL | awk '{print $6}')
 
 # Check if coverage is greater than 60%
 required_coverage=60.0
