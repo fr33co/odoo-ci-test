@@ -22,7 +22,6 @@ if [ $# -eq 0 ]; then
     echo "No test tags provided."
     echo "Running tests with coverage..."
     unbuffer coverage run --source="${ADDONS_DIR}" --branch \
-        --omit=odooenterprise,cco,odooaddonsutils,purchaseworkflow,serverux  \
         $(find /opt -name odoo-bin) \
         -d ${PGDATABASE} \
         -i ${ADDONS} \
@@ -33,7 +32,6 @@ else
     echo "Test tags provided."
     echo "Running tests with coverage..."
     unbuffer coverage run --source="${ADDONS_DIR}" --branch \
-        --omit=odooenterprise,cco,odooaddonsutils,purchaseworkflow,serverux  \
         $(find /opt -name odoo-bin) \
         -d ${PGDATABASE} \
         -i ${ADDONS} \
