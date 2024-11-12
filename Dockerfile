@@ -13,6 +13,7 @@ ENV LANG C.UTF-8
 USER root
 
 # Set timezone
+ARG timezone
 ENV TZ=$timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/time
 
@@ -118,10 +119,11 @@ ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tm
 RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
     && mv /tmp/getodoo/* /opt/odoo \
-    && rmdir /tmp/getodoo  \
-    && mkdri /opt/odoo/extras
+    && rmdir /tmp/getodoo
 
 # Install Python dependencies from requirements.txt
+RUN apt-get update && apt-get install -y libev-dev libc-ares-dev
+RUN pip install --upgrade pip setuptools wheel Cython>=0.29.21
 RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt && pip list
 
 # Install - coverage
@@ -132,6 +134,9 @@ RUN pip install --no-cache-dir flake8
 
 # Copy script to the container
 COPY bin/* /usr/local/bin/
+
+# Create extra addons directory
+RUN mkdir /opt/odoo/extras
 
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
