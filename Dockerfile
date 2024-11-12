@@ -133,8 +133,6 @@ ENV OPENERP_SERVER=/etc/odoo.cfg
 
 COPY bin/* /usr/local/bin/
 
-RUN mkdir -p /mnt/Custom/
-
 ENV ODOO_VERSION=$odoo_version
 ENV PGHOST=postgres
 ENV PGUSER=odoo
@@ -148,6 +146,6 @@ ENV PIP_NO_PYTHON_VERSION_WARNING=1
 # Control addons discovery. INCLUDE and EXCLUDE are comma-separated list of
 # addons to include (default: all) and exclude (default: none)
 ENV ADDONS_DIR=.
-ENV ADDONS_PATH=/opt/odoo/addons,/mnt/Custom/
+ENV ADDONS_PATH=/opt/odoo/addons
 ENV INCLUDE=
 ENV EXCLUDE=
