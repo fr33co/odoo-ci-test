@@ -37,9 +37,12 @@ jobs:
           - ubuntu_version: "22.04"
             odoo_version: "17.0"
             python_version: "3.10"
+          - ubuntu_version: "22.04"
+            odoo_version: "18.0"
+            python_version: "3.10"
     services:
       postgres:
-        image: postgres:9.6
+        image: postgres:12.0
         env:
           POSTGRES_USER: odoo
           POSTGRES_PASSWORD: odoo
