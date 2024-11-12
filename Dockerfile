@@ -124,7 +124,7 @@ RUN mkdir /tmp/getodoo \
     && rmdir /tmp/getodoo
 RUN pip install --no-cache-dir -e /opt/odoo \
     && pip list
-RUN pip install lxml_html_clean
+RUN pip install lxml_html_clean werkzeug==2.0.2
 
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
