@@ -19,7 +19,7 @@ fi
 # Ex./run_tests.sh --tags=mytag1,mytag2
 # Check if test tags are provided
 if [ $# -eq 0 ]; then
-    echo "No test tags provided."
+    echo "No test tags provided. Exiting with error."
     exit 1
 else
     echo "Test tags provided."
@@ -32,21 +32,22 @@ else
         --stop-after-init \
         --log-level=test \
         --"$@"
-fi
 
-echo "Generating coverage report..."
-coverage report
+    echo "Generating coverage report..."
+    coverage report
 
-echo "Calculating coverage..."
-coverage_percentage=$(coverage report | grep TOTAL | awk '{print $6}')
+    echo "Calculating coverage..."
+    coverage_percentage=$(coverage report | grep TOTAL | awk '{print $6}')
 
-# Check if coverage is greater than 60%
-required_coverage=60.0
+    # Check if coverage is greater than 60%
+    required_coverage=60.0
 
-if (( $(echo "$coverage_percentage >= $required_coverage" | bc -l) )); then
-    echo "Coverage (${coverage_percentage}%) is greater than or equal to ${required_coverage}% required."
-    exit 0
-else
-    echo "Coverage (${coverage_percentage}%) is less than ${required_coverage}% required."
-    exit 1
+    if (( $(echo "$coverage_percentage >= $required_coverage" | bc -l) )); then
+        echo "Coverage (${coverage_percentage}%) is greater than or equal to ${required_coverage}% required."
+        exit 0
+    else
+        echo "Coverage (${coverage_percentage}%) is less than ${required_coverage}% required."
+        exit 1
+    fi
+
 fi
