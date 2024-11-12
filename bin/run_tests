@@ -20,14 +20,7 @@ fi
 # Check if test tags are provided
 if [ $# -eq 0 ]; then
     echo "No test tags provided."
-    echo "Running tests with coverage..."
-    unbuffer coverage run --source="${ADDONS_DIR}" --branch \
-        $(find /opt -name odoo-bin) \
-        -d ${PGDATABASE} \
-        -i ${ADDONS} \
-        --test-enable \
-        --stop-after-init \
-        --log-level=test
+    exit 1
 else
     echo "Test tags provided."
     echo "Running tests with coverage..."
