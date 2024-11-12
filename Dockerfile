@@ -118,7 +118,8 @@ ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tm
 RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
     && mv /tmp/getodoo/* /opt/odoo \
-    && rmdir /tmp/getodoo
+    && rmdir /tmp/getodoo  \
+    && mkdri /opt/odoo/extras
 
 # Install Python dependencies from requirements.txt
 RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt && pip list
@@ -145,7 +146,7 @@ ENV PGUSER=odoo
 ENV PGPASSWORD=odoo
 ENV PGDATABASE=odoo
 ENV ADDONS_DIR=.
-ENV ADDONS_PATH=/opt/odoo/addons
+ENV ADDONS_PATH=/opt/odoo/addons,/opt/odoo/extras
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
