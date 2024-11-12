@@ -1,36 +1,21 @@
-ARG ubuntu_version
+ARG codename=focal
 
-FROM ubuntu:$ubuntu_version
-
-LABEL "com.github.actions.name"="Odoo custom addons test action"
-LABEL "com.github.actions.description"="Test yout Odoo's custom addons"
-
-LABEL version="0.1.0"
-LABEL repository="https://github.com/fr33co/odoo-ci-test"
-LABEL maintainer="Angel Guadarrama"
-
-ENV LANG C.UTF-8
+FROM ubuntu:$codename
+ENV LANG=C.UTF-8
 USER root
 
-# Set timezone
-ARG timezone
-ENV TZ=$timezone
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/time
-
-# Install some deps, lessc and less-plugin-clean-css, and wkhtmltopdf
-RUN set -x; \
-        apt-get update \
-        && apt-get install -y --no-install-recommends \
-            ca-certificates \
-            curl \
-            gettext \
-            git \
-            gnupg \
-            lsb-release \
-            software-properties-common \
-            expect-dev \
-            bc \
-            pipx
+# Basic dependencies
+RUN apt-get update -qq \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qq --no-install-recommends \
+        ca-certificates \
+        curl \
+        gettext \
+        git \
+        gnupg \
+        lsb-release \
+        software-properties-common \
+        expect-dev \
+        pipx
 
 ENV PIPX_BIN_DIR=/usr/local/bin
 
@@ -40,7 +25,7 @@ RUN case $(lsb_release -c -s) in \
       jammy) WKHTML_DEB_URL=https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb ;; \
     esac \
     && curl -sSL $WKHTML_DEB_URL -o /tmp/wkhtml.deb \
-    && apt update -qq \
+    && apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends /tmp/wkhtml.deb  \
     && rm /tmp/wkhtml.deb
 
@@ -52,21 +37,21 @@ RUN case $(lsb_release -c -s) in \
              && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg ;; \
     esac \
     && echo "$NODE_SOURCE" | tee /etc/apt/sources.list.d/nodesource.list \
-    && apt update -qq \
+    && apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq nodejs
-
 # less is for odoo<12
 RUN npm install -g rtlcss less@3.0.4 less-plugin-clean-css
 
 # Install postgresql client
 RUN curl -sSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -s -c`-pgdg main" > /etc/apt/sources.list.d/pgclient.list \
-    && apt update -qq \
+    && apt-get update -qq \
     && DEBIAN_FRONTEND=noninteractive apt-get install -qq postgresql-client-12
 
-# Install Google Chrome for browser tests
-RUN curl -sSL https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -o /tmp/chrome.deb \
-    && apt-get -y install --no-install-recommends /tmp/chrome.deb \
+# Install Google following Odoo's Runbot guideline https://github.com/odoo/runbot/blob/f8f435d468135486146a2e61e8d15d0f453c0e15/runbot/data/dockerfile_data.xml#L139-L140
+RUN curl -sSL https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_126.0.6478.182-1_amd64.deb -o /tmp/chrome.deb \
+    && apt-get update -qq \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends /tmp/chrome.deb  \
     && rm /tmp/chrome.deb
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa
@@ -79,79 +64,90 @@ RUN apt-get update -qq \
        build-essential \
        python${python_version}-dev \
        python${python_version}-venv \
+       # we need python 3 for our helper scripts
        python3 \
        python3-venv \
+       # for psycopg
        libpq-dev \
+       # for lxml
        libxml2-dev \
        libxslt1-dev \
        libz-dev \
        libxmlsec1-dev \
+       # for python-ldap
        libldap2-dev \
        libsasl2-dev \
+       # need libjpeg to build older pillow versions
        libjpeg-dev \
+       # for pycups
        libcups2-dev \
+       # for mysqlclient \
        default-libmysqlclient-dev \
+       # some other build tools
        swig \
        libffi-dev \
        pkg-config
 
-# We use manifestoo to check licenses, development status and list
-# addons and dependencies
+# We use manifestoo to check licenses, development status and list addons and dependencies
 RUN pipx install --pip-args="--no-cache-dir" "manifestoo>=0.3.1"
+# Used in oca_checklog_odoo to check odoo logs for errors and warnings
+RUN pipx install --pip-args="--no-cache-dir" checklog-odoo
 
 # Install pyproject-dependencies helper scripts.
 ARG build_deps="setuptools-odoo wheel whool"
 RUN pipx install --pip-args="--no-cache-dir" pyproject-dependencies
 RUN pipx inject --pip-args="--no-cache-dir" pyproject-dependencies $build_deps
 
-# Make a virtualenv for Odoo so we isolate from system python dependencies
-# and make sure addons we test declare all their python dependencies properly
+# Make a virtualenv for Odoo so we isolate from system python dependencies and
+# make sure addons we test declare all their python dependencies properly
 ARG setuptools_constraint
-RUN python${python_version} -m venv /opt/odoo-venv \
+RUN python$python_version -m venv /opt/odoo-venv \
     && /opt/odoo-venv/bin/pip install -U "setuptools$setuptools_constraint" "wheel" "pip" \
     && /opt/odoo-venv/bin/pip list
 ENV PATH=/opt/odoo-venv/bin:$PATH
 
+ARG odoo_version
+
+# Install other test requirements.
+# - coverage
+# - websocket-client is required for Odoo browser tests
+RUN pip install --no-cache-dir \
+  coverage \
+  websocket-client
+
 # Install Odoo (use ADD for correct layer caching)
 ARG odoo_org_repo=odoo/odoo
-ARG odoo_version
 ADD https://api.github.com/repos/$odoo_org_repo/git/refs/heads/$odoo_version /tmp/odoo-version.json
 RUN mkdir /tmp/getodoo \
     && (curl -sSL https://github.com/$odoo_org_repo/tarball/$odoo_version | tar -C /tmp/getodoo -xz) \
     && mv /tmp/getodoo/* /opt/odoo \
     && rmdir /tmp/getodoo
-
-# Install Python dependencies from requirements.txt
-RUN apt-get update && apt-get install -y libev-dev libc-ares-dev
-RUN pip install --upgrade pip setuptools wheel Cython>=0.29.21
-RUN pip install --no-cache-dir -r /opt/odoo/requirements.txt && pip list
-
-# Install - coverage
-RUN pip install --no-cache-dir coverage
-
-# Install - flake8
-RUN pip install --no-cache-dir flake8
-
-# Copy script to the container
-COPY bin/* /usr/local/bin/
-
-# Create extra addons directory
-RUN mkdir /opt/odoo/extras
+RUN pip install --no-cache-dir -e /opt/odoo \
+    && pip list
+RUN pip install lxml_html_clean
 
 # Make an empty odoo.cfg
 RUN echo "[options]" > /etc/odoo.cfg
 ENV ODOO_RC=/etc/odoo.cfg
 ENV OPENERP_SERVER=/etc/odoo.cfg
 
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
-ENV PIP_NO_PYTHON_VERSION_WARNING=1
+COPY bin/* /usr/local/bin/
+
+RUN mkdir -p /opt/odoo/extras
+
 ENV ODOO_VERSION=$odoo_version
 ENV PGHOST=postgres
 ENV PGUSER=odoo
 ENV PGPASSWORD=odoo
 ENV PGDATABASE=odoo
+# This PEP 503 index uses odoo addons from OCA and redirects the rest to PyPI,
+# in effect hiding all non-OCA Odoo addons that are on PyPI.
+ENV PIP_INDEX_URL=https://wheelhouse.odoo-community.org/oca-simple-and-pypi
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_NO_PYTHON_VERSION_WARNING=1
+# Control addons discovery. INCLUDE and EXCLUDE are comma-separated list of
+# addons to include (default: all) and exclude (default: none)
 ENV ADDONS_DIR=.
 ENV ADDONS_PATH=/opt/odoo/addons,/opt/odoo/extras
-
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+ENV INCLUDE=
+ENV EXCLUDE=

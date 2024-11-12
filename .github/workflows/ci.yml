@@ -16,30 +16,36 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - ubuntu_version: "20.04"
-            odoo_version: "11.0"
-            python_version: "3.5"
-          - ubuntu_version: "20.04"
+          - codename: "20.04"
             odoo_version: "12.0"
-            python_version: "3.5"
-          - ubuntu_version: "20.04"
+            python_version: "3.6"
+            odoo_org_repo: "odoo/odoo"
+            setuptools_constraint: "<58"
+          - codename: "20.04"
             odoo_version: "13.0"
-            python_version: "3.5"
-          - ubuntu_version: "20.04"
+            python_version: "3.6"
+            odoo_org_repo: "odoo/odoo"
+            setuptools_constraint: "<58" 
+          - codename: "20.04"
             odoo_version: "14.0"
             python_version: "3.8"
-          - ubuntu_version: "20.04"
+            odoo_org_repo: "odoo/odoo"
+          - codename: "20.04"
             odoo_version: "15.0"
             python_version: "3.8"
-          - ubuntu_version: "22.04"
+            odoo_org_repo: "odoo/odoo"
+          - codename: "22.04"
             odoo_version: "16.0"
             python_version: "3.10"
-          - ubuntu_version: "22.04"
+            odoo_org_repo: "odoo/odoo"
+          - codename: "22.04"
             odoo_version: "17.0"
             python_version: "3.10"
-          - ubuntu_version: "22.04"
+            odoo_org_repo: "odoo/odoo"
+          - codename: "22.04"
             odoo_version: "18.0"
             python_version: "3.10"
+            odoo_org_repo: "odoo/odoo"
     services:
       postgres:
         image: postgres:12.0
@@ -67,7 +73,7 @@ jobs:
           tags: fr33co/odootests:${{ matrix.odoo_version }}
           platforms: linux/amd64
           build-args: |
-            ubuntu_version=${{ matrix.ubuntu_version }}
+            codename=${{ matrix.codename }}
             odoo_version=${{ matrix.odoo_version }}
             python_version=${{ matrix.python_version }}
             timezone=America/Bogota
